@@ -58,6 +58,7 @@ export default class App extends Component {
   }
 
   async componentDidMount() {
+    await this.loadAliases(this.state.aliasEditorText);
     await this.printLine({ text: 'Welcome to Germinal, the web Terminal :)', type: 'output' });
     await this.printLine({ text: 'Type \'help\' to get started.', type: 'output' });
   }
@@ -131,8 +132,6 @@ export default class App extends Component {
       flags = 'flags: -ms (default): milliseconds, -s: seconds, -m: minutes';
       try {
         action = () => {
-          console.log(body[0]);
-          console.log(body.slice(1).join(' '));
           setTimeout(
             async() => await this.execute(body.slice(1).join(' ')),
             ~~body[0] * (flag === '-ms' ? 1 : (flag === '-s' ? 1000 : 60000))
@@ -143,7 +142,6 @@ export default class App extends Component {
       }
     } else if (Object.keys(this.state.aliases).includes(command)) {
       // if the input matches an alias 
-      console.log(body);
       return await this.execute(this.state.aliases[command].replace('<QUERY>', body ? body.join('%20') : ''));
     } else {
       console.log('invalid command: ', rawCommand);
@@ -175,7 +173,7 @@ export default class App extends Component {
     await this.setStateAsync({
       aliasEditorText: rawText,
       aliases: parse,
-      showEditor: !this.state.showEditor
+      showEditor: false
     });
     /* ALIAS QUERIES
       actual link: https://www.rottentomatoes.com/search/?search=the%20matrix%20revolutions
