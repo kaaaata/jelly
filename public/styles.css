@@ -11,3 +11,38 @@ input {
   padding: 0;
   border: 1px solid #888;
 }
+textarea {
+  outline: none;
+  resize: none;
+  border: solid black;
+  font-family: 'Coming Soon', cursive;
+  font-size: 16px;
+}
+
+.alias-editor {
+  position: absolute;
+  width: 800px;
+  height: 1000px;
+  margin: 50px;
+  background-color: Coral;
+  border: solid black;
+  padding: 50px;
+  padding-right: 0;
+  display: flex;
+  justify-content: flex-start;
+}
+.alias-editor-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.alias-editor-button {
+  width: 64px;
+  height: 64px;
+  margin: 16px;
+  border: solid black;
+  background-color: Snow;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
