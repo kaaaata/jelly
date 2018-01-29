@@ -8,10 +8,6 @@ export default class Alias extends Component {
     };
   }
 
-  // componentDidMount() {
-  //   console.log(this.props.aliasEditorText);
-  // }
-
   render() {
     return (
       <div className='alias-editor'>

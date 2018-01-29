@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Line from './Line';
 import Alias from './Alias';
+import { cat } from './cat';
 
 import * as Commands from './commands';
 
@@ -16,20 +17,22 @@ export default class App extends Component {
       aliases: {}, // currently active aliases
       aliasEditorText: // what the user sees when editing aliases
       'Welcome to the alias editor!\n' + 
-      'Do not delete these first 6 lines!\n' +
-      'Below the #####, write your aliases as a JSON object, each key-value pair as a new alias.\n' +
-      'Sample: {"nflx":"open -e https://www.netflix.com/", "h":"help"}\n' +
-      'These aliases can be called from the command line like \'nflx\' and \'h\'\n' +
-      '#############################################################################\n',
+      'Do not delete the ########## line! \n' +
+      'Below the ##########, write your aliases in JSON object format.\n' +
+      'Sample: {"nflx":"open -e https://www.netflix.com/", \n' +
+      '"yt":"open -e https://www.youtube.com/results?search_query=<QUERY>"}\n' +
+      'These aliases can be called from the command line like \'nflx\' and \'yt gangnam style\'\n' +
+      '##########\n' + cat,
       showEditor: false, // show the text editor for aliases
       help: [ // static help feature text
-        'Available commands: open, alias, clear, print, help, helloworld',
+        'Available commands: open, alias, wait, clear, print, help, helloworld',
         'Usage: [Command] [Flag] [Body] ex. open -t youtube (opens youtube.com in a new tab)',
         'Documentation: use -d flag to view command documentation ex. open -d', 
       ],
     };
 
     document.onkeydown = async(e) => {
+      if (this.state.showEditor) return; // cannot send commands in editor mode
       if (e.keyCode === 13) { // enter
         this.execute(this.state.text);
       } else if (e.keyCode === 38 || e.keyCode === 40) { // up/down arrows
@@ -68,7 +71,7 @@ export default class App extends Component {
       await this.setStateAsync({ inputLines: this.state.inputLines.concat([command.text]) });
       await this.setStateAsync({ inputTracker: this.state.inputLines.length });
     }
-    return await this.setStateAsync({ text: '' });
+    await this.setStateAsync({ text: '' });
   }
 
   async execute(rawCommand) {
@@ -116,16 +119,32 @@ export default class App extends Component {
       action = async() => {
         await this.printLine({ text: this.state.help[0], type: 'output' });
         await this.printLine({ text: this.state.help[1], type: 'output' });
-        return await this.printLine({ text: this.state.help[2], type: 'output' });
+        await this.printLine({ text: this.state.help[2], type: 'output' });
       }
     } else if (command === 'open') {
       //NOTE: each browser will override these flags below. i.e. chrome default opens new window in new tab
       docs = 'open: opens a web page. ex. \'open youtube\'';
       flags = 'flags: -n (default): open in new window/tab, -a: open in active tab, -e: exact URL';
       action = async() => await Commands.open(body, flag);
+    } else if (command === 'wait') {
+      docs = 'wait: delay a command, then run it. ex. \'wait -s 5 open youtube\'';
+      flags = 'flags: -ms (default): milliseconds, -s: seconds, -m: minutes';
+      try {
+        action = () => {
+          console.log(body[0]);
+          console.log(body.slice(1).join(' '));
+          setTimeout(
+            async() => await this.execute(body.slice(1).join(' ')),
+            ~~body[0] * (flag === '-ms' ? 1 : (flag === '-s' ? 1000 : 60000))
+          );
+        };
+      } catch (e) {
+        action = async() => await this.printLine({ text: 'Invalid command. ', type: 'output' });
+      }
     } else if (Object.keys(this.state.aliases).includes(command)) {
-      return await this.execute(this.state.aliases[command] + body + flag);
-
+      // if the input matches an alias 
+      console.log(body);
+      return await this.execute(this.state.aliases[command].replace('<QUERY>', body ? body.join('%20') : ''));
     } else {
       console.log('invalid command: ', rawCommand);
       action = () => {};
@@ -137,27 +156,39 @@ export default class App extends Component {
       await this.printLine({ text: docs, type: 'output' });
       return await this.printLine({ text: flags, type: 'output' });
     }
-    return await action();
+    await action();
   }
 
   async toggleEditor() {
-    return await this.setStateAsync({ showEditor: !this.state.showEditor });
+    await this.setStateAsync({ showEditor: !this.state.showEditor });
   }
 
   async loadAliases(rawText) {
-    let parse = rawText.split('\n')[6];
+    let parse = rawText.split('\n');
+    parse = parse.slice(parse.indexOf('##########') + 1).join('\n');
     console.log('NOT JSON-parsed aliases: ', parse);
     try { parse = JSON.parse(parse); }
     catch (e) {
-      // later, this will be caught before the user can save invalid aliases
-      console.log('Invalid aliases. ');
+      this.printLine({ text: 'Invalid alias JSON. Please \'alias -e\' and fix.', type: 'output ' });
     }
     console.log('JSON-parsed aliases: ', parse);
-    return await this.setStateAsync({
+    await this.setStateAsync({
       aliasEditorText: rawText,
       aliases: parse,
       showEditor: !this.state.showEditor
     });
+    /* ALIAS QUERIES
+      actual link: https://www.rottentomatoes.com/search/?search=the%20matrix%20revolutions
+      broken down: 
+        URL: https://www.rottentomatoes.com/search/?search=
+        QUERY: the matrix revolutions
+      alias editor JSON: {"rt":"open -e https://www.rottentomatoes.com/search/?search=<QUERY>"}
+      user types in germinal: rt the matrix revolutions
+      algorithm: replace <QUERY> with the body of the command
+
+    */
+
+
   }
 
   render() {
@@ -171,7 +202,11 @@ export default class App extends Component {
           />
         }
         {this.state.lines.map((line, index) => (
-          <Line key={index} text={line.text} type={line.type} />
+          <Line
+            key={index}
+            text={line.text}
+            type={line.type}
+          />
         ))}
         >&nbsp;<input
           value={this.state.text}
