@@ -76,11 +76,10 @@ export default class App extends Component {
   }
 
   async execute(rawCommand) {
-    const parse = rawCommand.trim().replace(/\s+/g,' ').split(' ');
+    const parse = Commands.parseCommand(rawCommand);
     const command = parse[0];
-    const flag = (parse[1] && parse[1].length === 2 && parse[1][0] === '-' && parse[1][1].match(/[a-z]/)) ? parse[1] : '';
-    const body = parse.slice(flag ? 2 : 1).length ? parse.slice(flag ? 2 : 1) : '';
-    console.log(`<${command}> <${flag}> <${body}>`);
+    const flag = parse[1];
+    const body = parse[2];
 
     let action; // command action, which happens after command is logged
     let docs; // command documentation (displayed with -d)
@@ -134,7 +133,7 @@ export default class App extends Component {
         action = () => {
           setTimeout(
             async() => await this.execute(body.slice(1).join(' ')),
-            ~~body[0] * (flag === '-ms' ? 1 : (flag === '-s' ? 1000 : 60000))
+            ~~body[0] * (flag === '-m' ? 60000 : (flag === '-s' ? 1000 : 1))
           );
         };
       } catch (e) {
