@@ -22,6 +22,7 @@ export const cat = '{' +
 '"dp":"open -e http://localhost:9200/delete/available_passengers"' + ',' +
 '"dd":"open -e http://localhost:9200/delete/available_drivers"' + ',' +
 '"dt":"open -e http://localhost:9200/delete/trips"' + ',' +
+'"da":"open -e http://localhost:9200/delete/all"' + ',' +
 '"match":"open -e http://localhost:9200/match"' + ',' +
 '"simulate":"open -e http://localhost:9200/simulate"' + ',' +
 '"regex":"open -e https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"'
