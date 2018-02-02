@@ -4,12 +4,18 @@ import Command from './Command';
 export default class CommandList extends Component {
   render() {
     return (
-      <div className='command-list'>
+      <div id='editor'>
         <div className='nav'>
           Profile: {this.props.profile}
         </div>
         <div className='nav' onClick={() => this.props.writeCommand('new')}>
           New Command
+        </div>
+        <div className='nav' onClick={() => {
+          document.getElementById('terminal').style.width = '750px';
+          document.getElementById('editor').style.width = '250px';
+        }}>
+          |||
         </div>
         {this.props.commands.map((command, index) => (
           <Command

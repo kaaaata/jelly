@@ -51,7 +51,7 @@ export default class App extends Component {
     await this.printLine({ text: 'Type \'commands\' to get started.', type: 'output' });
   }
 
-  writeCommand(action, id, alias, url) { // new, update, or remove an existing command
+  async writeCommand(action, id, alias, url) { // new, update, or remove an existing command
     let newCommands = this.state.commands.slice();
     if (action === 'new') { // new = add a new blank object
       newCommands.push({ 'id': this.state.commands[this.state.commands.length - 1].id + 1, '' : '' });
@@ -70,10 +70,8 @@ export default class App extends Component {
     } else if (action === 'delete') {
       newCommands = newCommands.filter(command => Object.values(command)[0] !== id);
     }
-    this.setState({ commands: []}, () => {
-      console.log(this.state.commands);
-      this.setState({ commands: newCommands }, () => console.log(this.state.commands));
-    });
+    await this.setStateAsync({ commands: []});
+    await this.setStateAsync({ commands: newCommands });
   }
   
   async printLine(command = { text: '', type: 'input' }) {
@@ -112,14 +110,16 @@ export default class App extends Component {
     return (
       <div className='app'>
         <CommandList commands={this.state.commands} profile={this.state.profile} writeCommand={this.writeCommand} />
-        {this.state.lines.map((line, index) => (
-          <Line key={index} text={line.text} type={line.type} />
-        ))}
-        >&nbsp;<input
-          value={this.state.text}
-          onChange={e => this.setState({ text: e.target.value })}
-          style={{ width: '500px' }}
-        ></input>
+        <div id='terminal'>
+          {this.state.lines.map((line, index) => (
+            <Line key={index} text={line.text} type={line.type} />
+          ))}
+          >&nbsp;<input
+            value={this.state.text}
+            onChange={e => this.setState({ text: e.target.value })}
+            style={{ width: '500px' }}
+          ></input>
+        </div>
       </div>
     );
   }

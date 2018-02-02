@@ -8,7 +8,7 @@ export default class CommandList extends Component {
       id: props.id,
       alias: props.alias,
       url: props.url,
-      editing: false, // make default true later
+      //editing: false, // make default true later
       oldAlias: props.alias,
       oldUrl: props.url,
     };
@@ -31,14 +31,18 @@ export default class CommandList extends Component {
         <input // alias box
           value={this.state.alias}
           onChange={e => this.setState({ alias: e.target.value })}
-          disabled={!this.state.editing}
+          //disabled={!this.state.editing}
           style={{ width: '100px' }}
         ></input>
 
         <input // url box
           value={this.state.url}
-          onChange={e => this.setState({ url: e.target.value })}
-          disabled={!this.state.editing}
+          onChange={async(e) => {
+            await this.setStateAsync({ url: e.target.value });
+            await this.props.writeCommand('update', this.state.id, this.state.alias, this.state.url);
+            await this.setStateAsync({ oldAlias: this.state.alias, oldUrl: this.state.url });
+          }}
+          //disabled={!this.state.editing}
           style={{ width: '500px' }}
         ></input>
         

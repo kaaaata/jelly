@@ -11,7 +11,18 @@ input {
 .app {
   font-family: 'Coming Soon', cursive;
   font-size: 16px;
-  width: 800px;
+  width: 1000px;
+  display: flex;
+}
+#terminal {
+  background-color: 'Pink';
+  width: 1000;
+  height: 100%;
+}
+#editor {
+  width: 0;
+  height: 100%;
+  background-color: 'Green';
 }
 .nav {
   padding: 5px;
