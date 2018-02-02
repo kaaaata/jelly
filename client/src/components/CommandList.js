@@ -5,6 +5,14 @@ export default class CommandList extends Component {
   render() {
     return (
       <div id='editor'>
+        <div>
+          Profile: {this.props.profile}
+        </div>
+        <div style={{ display: 'flex' }}>
+          <div className='nav' onClick={() => this.props.writeCommand('new')}>
+            New Command
+          </div>
+        </div>
         {this.props.commands.map((command, index) => (
           <Command
             key={command.id}

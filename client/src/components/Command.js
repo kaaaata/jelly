@@ -21,9 +21,11 @@ export default class CommandList extends Component {
   render() {
     return (
       <div className='command' style={{ display: 'flex' }}>
-        <div>
-          {this.state.index}
-        </div>
+        <input // index counter (not really input but use input for ez formatting)
+          value={this.state.index}
+          disabled={true}
+          style={{ width: '25px' }}
+        ></input>
 
         <input // alias box
           value={this.state.alias}

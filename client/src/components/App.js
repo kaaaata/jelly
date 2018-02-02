@@ -10,7 +10,6 @@ export default class App extends Component {
       lines: [], // a log of all input/outputs entered thus far
       inputLines: [], // a log of all inputs only entered thus far
       inputTracker: 0, // when user hits arrow up/down, inputTracker tracks the previous input to display
-      builtInCommands: ['clear', 'open'], // list of built-in commands
       profile: 'cat', // current active alias profile, to-do
       commands: [ // all active commands, {alias:url} (used to render)
         {id: 1, yt:'https://www.youtube.com/results?search_query='},
@@ -28,10 +27,13 @@ export default class App extends Component {
     };
 
     document.onkeydown = async(e) => {
-      if (this.state.editingMode) return; // cannot send commands in editingMode
-      if (e.keyCode === 13) { // enter
-        this.execute(this.state.text);
-      } else if (e.keyCode === 38 || e.keyCode === 40) { // up/down arrows
+      // esc = toggle editor
+      if (e.keyCode === 27) await this.toggleEditor();
+      if (this.state.editingMode) return; // cant use hotkeys in editing mode
+      // enter = submit command
+      if (e.keyCode === 13 && !this.state.editingMode) this.execute(this.state.text);
+      // up/down arrows = prev/next command
+      if ((e.keyCode === 38 || e.keyCode === 40) && !this.state.editingMode) { 
         if (this.state.inputTracker === (e.keyCode === 38 ? 0 : this.state.inputLines.length - 1)) {
           return await this.setStateAsync({ text: this.state.inputLines[this.state.inputTracker] });
         }
@@ -57,18 +59,22 @@ export default class App extends Component {
     await this.printLine({ text: 'Welcome to Jelly! :)', type: 'output' });
   }
 
-  async toggleEditor() {
-    document.getElementById('terminal').style.marginLeft = this.state.editingMode ? 0 : '600px';
+  async toggleEditor(mode = 'save') {
+    // mode = 'save' or 'dont save'
+    document.getElementById('terminal').style.marginLeft = this.state.editingMode ? 0 : '650px';
     document.getElementById('terminal').style.opacity = this.state.editingMode ? 1 : 0.5;
-    document.getElementById('editor').style.width = this.state.editingMode ? 0 : '600px';
-    if (this.state.editingMode) await this.setState({ commands: this.state.editingCommands });
-    await this.setState({ editingMode: !this.state.editingMode });
+    document.getElementById('editor').style.width = this.state.editingMode ? 0 : '650px';
+    if (this.state.editingMode) {
+      if (mode === 'save') await this.setStateAsync({ commands: this.state.editingCommands });
+      if (mode !== 'save') await this.setStateAsync({ editingCommands: this.state.commands });
+    }
+    await this.setStateAsync({ editingMode: !this.state.editingMode });
   }
 
   async writeCommand(action, id, alias, url) { // new, update, or remove an existing command
     let newCommands = this.state.editingCommands.slice();
     if (action === 'new') { // new = add a new blank object
-      newCommands.push({ 'id': this.state.editingCommands[this.state.Commands.length - 1].id + 1, '' : '' });
+      newCommands.push({ 'id': this.state.editingCommands[this.state.editingCommands.length - 1].id + 1, '' : '' });
     } else if (action === 'update') { // update = find the object, add a new k-v pair, delete the old k-v pair
       newCommands.forEach(command => {
         if (command.id === id) {
@@ -86,6 +92,7 @@ export default class App extends Component {
     }
     await this.setStateAsync({ editingCommands: []});
     await this.setStateAsync({ editingCommands: newCommands });
+    if (action === 'new') await this.setState({ commands: this.state.editingCommands });
   }
   
   async printLine(command = { text: '', type: 'input' }) {
@@ -131,13 +138,12 @@ export default class App extends Component {
         </div>
         <CommandList
           commands={this.state.commands}
+          profile={this.state.profile}
+          toggleEditor={this.toggleEditor}
           writeCommand={this.writeCommand} />
         <div id='terminal'>          
           <div className='nav'>
             Profile: {this.state.profile}
-          </div>
-          <div className='nav' onClick={() => this.props.writeCommand('new')}>
-            New Command
           </div>
           {this.state.lines.map((line, index) => (
             <Line key={index} text={line.text} type={line.type} />
