@@ -12,7 +12,13 @@ export default class App extends Component {
       inputTracker: 0, // when user hits arrow up/down, inputTracker tracks the previous input to display
       builtInCommands: ['clear', 'open'], // list of built-in commands
       profile: 'cat', // current active alias profile, to-do
-      commands: [ // all active commands, {alias:url}
+      commands: [ // all active commands, {alias:url} (used to render)
+        {id: 1, yt:'https://www.youtube.com/results?search_query='},
+        {id: 2, rt:'https://www.rottentomatoes.com/search/?search='},
+        {id: 3, gg:'https://www.google.com/search?q='},
+        {id: 4, rd:'https://www.reddit.com/r/'},
+      ],
+      editingCommands: [ // a snapshot of what commands were before editing (not used to render)
         {id: 1, yt:'https://www.youtube.com/results?search_query='},
         {id: 2, rt:'https://www.rottentomatoes.com/search/?search='},
         {id: 3, gg:'https://www.google.com/search?q='},
@@ -35,6 +41,7 @@ export default class App extends Component {
     };
 
     this.setStateAsync = this.setStateAsync.bind(this);
+    this.toggleEditor = this.toggleEditor.bind(this);
     this.writeCommand = this.writeCommand.bind(this);
     this.execute = this.execute.bind(this);
     this.printLine = this.printLine.bind(this);
@@ -47,14 +54,21 @@ export default class App extends Component {
   }
 
   async componentDidMount() {
-    await this.printLine({ text: 'Welcome to Germinal, the web Terminal :)', type: 'output' });
-    await this.printLine({ text: 'Type \'commands\' to get started.', type: 'output' });
+    await this.printLine({ text: 'Welcome to Jelly! :)', type: 'output' });
+  }
+
+  async toggleEditor() {
+    document.getElementById('terminal').style.marginLeft = this.state.editingMode ? 0 : '600px';
+    document.getElementById('terminal').style.opacity = this.state.editingMode ? 1 : 0.5;
+    document.getElementById('editor').style.width = this.state.editingMode ? 0 : '600px';
+    if (this.state.editingMode) await this.setState({ commands: this.state.editingCommands });
+    await this.setState({ editingMode: !this.state.editingMode });
   }
 
   async writeCommand(action, id, alias, url) { // new, update, or remove an existing command
-    let newCommands = this.state.commands.slice();
+    let newCommands = this.state.editingCommands.slice();
     if (action === 'new') { // new = add a new blank object
-      newCommands.push({ 'id': this.state.commands[this.state.commands.length - 1].id + 1, '' : '' });
+      newCommands.push({ 'id': this.state.editingCommands[this.state.Commands.length - 1].id + 1, '' : '' });
     } else if (action === 'update') { // update = find the object, add a new k-v pair, delete the old k-v pair
       newCommands.forEach(command => {
         if (command.id === id) {
@@ -70,8 +84,8 @@ export default class App extends Component {
     } else if (action === 'delete') {
       newCommands = newCommands.filter(command => Object.values(command)[0] !== id);
     }
-    await this.setStateAsync({ commands: []});
-    await this.setStateAsync({ commands: newCommands });
+    await this.setStateAsync({ editingCommands: []});
+    await this.setStateAsync({ editingCommands: newCommands });
   }
   
   async printLine(command = { text: '', type: 'input' }) {
@@ -109,8 +123,22 @@ export default class App extends Component {
   render() {
     return (
       <div className='app'>
-        <CommandList commands={this.state.commands} profile={this.state.profile} writeCommand={this.writeCommand} />
-        <div id='terminal'>
+        <div 
+          onClick={this.toggleEditor}
+          style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, border: 'solid black' }}
+        >
+          |||
+        </div>
+        <CommandList
+          commands={this.state.commands}
+          writeCommand={this.writeCommand} />
+        <div id='terminal'>          
+          <div className='nav'>
+            Profile: {this.state.profile}
+          </div>
+          <div className='nav' onClick={() => this.props.writeCommand('new')}>
+            New Command
+          </div>
           {this.state.lines.map((line, index) => (
             <Line key={index} text={line.text} type={line.type} />
           ))}

@@ -11,20 +11,30 @@ input {
 .app {
   font-family: 'Coming Soon', cursive;
   font-size: 16px;
-  width: 1000px;
   display: flex;
+  flex-direction: column;
 }
 #terminal {
-  background-color: 'Pink';
-  width: 1000;
+  border: solid pink;
   height: 100%;
+  padding: 10px;
+  padding-top: 20px;
+  opacity: 1;
+  transition: margin-left .75s;
 }
 #editor {
+  border: solid green;
   width: 0;
   height: 100%;
-  background-color: 'Green';
+  padding-top: 20px;
+  position: absolute;
+  overflow-x: hidden;
+  transition: 0.75s;
 }
 .nav {
+  width: 200px;
+  height: 20px;
+  border: solid red;
   padding: 5px;
   border: 1px solid #888;
 }
