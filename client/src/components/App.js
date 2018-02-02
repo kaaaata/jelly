@@ -10,18 +10,19 @@ export default class App extends Component {
       lines: [], // a log of all input/outputs entered thus far
       inputLines: [], // a log of all inputs only entered thus far
       inputTracker: 0, // when user hits arrow up/down, inputTracker tracks the previous input to display
+      builtInCommands: ['clear', 'open'], // list of built-in commands
       profile: 'cat', // current active alias profile, to-do
-      commands: { // all active commands
-        'yt': { url: 'https://www.youtube.com/results?search_query=', editing: false },
-        'rt': { url: 'https://www.rottentomatoes.com/search/?search=', editing: false },
-        'gg': { url: 'https://www.google.com/search?q=', editing: false },
-        'rd': { url: 'https://www.reddit.com/r/', editing: false },
-      },
+      commands: [ // all active commands, {alias:url}
+        {id: 1, yt:'https://www.youtube.com/results?search_query='},
+        {id: 2, rt:'https://www.rottentomatoes.com/search/?search='},
+        {id: 3, gg:'https://www.google.com/search?q='},
+        {id: 4, rd:'https://www.reddit.com/r/'},
+      ],
       editingMode: false, // currently editing commands?
     };
 
     document.onkeydown = async(e) => {
-      if (this.state.editingMode) return; // cannot send commands in editor mode
+      if (this.state.editingMode) return; // cannot send commands in editingMode
       if (e.keyCode === 13) { // enter
         this.execute(this.state.text);
       } else if (e.keyCode === 38 || e.keyCode === 40) { // up/down arrows
@@ -34,7 +35,7 @@ export default class App extends Component {
     };
 
     this.setStateAsync = this.setStateAsync.bind(this);
-    this.updateCommand = this.updateCommand.bind(this);
+    this.writeCommand = this.writeCommand.bind(this);
     this.execute = this.execute.bind(this);
     this.printLine = this.printLine.bind(this);
   }
@@ -50,13 +51,31 @@ export default class App extends Component {
     await this.printLine({ text: 'Type \'commands\' to get started.', type: 'output' });
   }
 
-  async updateCommand(command) { // update an existing command
-    const stateCopy = Object.assign({}, this.state);
-    stateCopy.commands[command.alias].url = command.url;
-    stateCopy.commands[command.alias].edit = command.edit;
-    await this.setStateAsync(stateCopy);
+  writeCommand(action, id, alias, url) { // new, update, or remove an existing command
+    let newCommands = this.state.commands.slice();
+    if (action === 'new') { // new = add a new blank object
+      newCommands.push({ 'id': this.state.commands[this.state.commands.length - 1].id + 1, '' : '' });
+    } else if (action === 'update') { // update = find the object, add a new k-v pair, delete the old k-v pair
+      newCommands.forEach(command => {
+        if (command.id === id) {
+          const oldAlias = Object.keys(command)[1];
+          if (oldAlias === alias) {
+            command[alias] = url;
+          } else {
+            command[alias] = url;
+            delete command[oldAlias];
+          }
+        }
+      })
+    } else if (action === 'delete') {
+      newCommands = newCommands.filter(command => Object.values(command)[0] !== id);
+    }
+    this.setState({ commands: []}, () => {
+      console.log(this.state.commands);
+      this.setState({ commands: newCommands }, () => console.log(this.state.commands));
+    });
   }
-
+  
   async printLine(command = { text: '', type: 'input' }) {
     // Input: command like { text: <rawCommand>, type: <input/output> }
     // Output: prints command to log and sets new blank line for input
@@ -73,23 +92,26 @@ export default class App extends Component {
     const parse = rawCommand.trim().replace(/\s+/g,' ').split(' ');
     const command = parse[0];
     const body = parse.length > 1 ? parse.slice(1).join(' ') : '';
-    if (command === 'c') {
+    console.log(`<${command}> --> <${body}>`);
+    if (command === 'commands') {
       await this.setStateAsync({ editingMode: true });
-    } else if (command === 'o') {
-      window.open(`http://${body}.com`, '_blank');
-    } else if (command === 'oe') {
+    } else if (command === 'clear') {
+      await this.setStateAsync({ lines: [], inputLines: [], inputTracker: 0 });
+    } else if (command === 'open') {
+      window.open(`${body.startsWith('https://') || body.startsWith('http://') ? 'http://' : ''}${body}.com`, '_blank');
+    } else if (command === 'exact') {
       window.open(body, '_blank');
-    } else if (this.state.commands.hasOwnProperty(command)) {
-      window.open(this.state.commands[command].url + body, '_blank');
+    } else if (this.state.commands.filter(item => Object.keys(item)[1] === command).length) {
+      window.open(this.state.commands.filter(item => Object.keys(item)[1] === command)[0][command] + body, '_blank');
     }
     await this.printLine({ text: this.state.text, type: 'input' });
-    await this.setState({ lineTracker: this.state.lineTracker + 1 });
+    await this.setStateAsync({ lineTracker: this.state.lineTracker + 1 });
   }
 
   render() {
     return (
       <div className='app'>
-        <CommandList commands={this.state.commands} updateCommand={this.updateCommand} />
+        <CommandList commands={this.state.commands} profile={this.state.profile} writeCommand={this.writeCommand} />
         {this.state.lines.map((line, index) => (
           <Line key={index} text={line.text} type={line.type} />
         ))}
