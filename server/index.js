@@ -1,12 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+const favicon = require('serve-favicon')
 
 const psqlHelper = require('../database/postgres');
 const db = require('../database/db');
 const dbHelpers = require('../database/index');
 
 const app = express();
+app.use(favicon(__dirname + '/../client/dist/favicon.ico'));
+// note: google chrome can't display local favicons
+app.use(express.static( __dirname + '/../client/dist'));
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   console.log(`${req.path}, ${req.method}, ${req.status}, ${JSON.stringify(req.body)}`);
@@ -19,7 +23,6 @@ app.use(require('express-session')({
   saveUninitialized: true,
 }));
 
-app.use(express.static(path.join(__dirname, '../client/dist')));
 app.listen(process.env.PORT || 3000);
 
 // ROUTES THAT ARE ACTUALLY USED

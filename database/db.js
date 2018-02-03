@@ -1,7 +1,6 @@
 let config = require('../knexfile');
 
-let env = 'production';
-//let env = 'development';
+let env = process.env.PORT ? 'production' : 'development';
 
 let knex = require('knex')(config[env]);
 

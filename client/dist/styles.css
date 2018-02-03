@@ -21,13 +21,15 @@ input {
   width: 64px;
   height: 64px;
   position: 'absolute';
-  top: '10px';
-  left: '10px';
+  top: '5px';
+  left: '5px';
   z-index: 1;
   border-radius: 50%;
   border: 1px solid #888;
-  background-image: url('assets/jelly.png');
-  background-size: contain;
+  background-image: url('assets/jelly.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.85;
 
   animation-name: spin;
   animation-duration: 6000ms;
@@ -47,6 +49,7 @@ input {
   transition: margin-left .75s;
 }
 #terminal {
+  height: 100%;
   overflow-y: scroll;
   background-color: PaleTurquoise; 
 }
