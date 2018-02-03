@@ -46,7 +46,9 @@ export default class App extends Component {
   }
 
   async componentDidMount() {
-    await this.printLine({ text: 'Welcome to Jelly! :)', type: 'output' });
+    await this.printLine({ text: 'Welcome to Jelly :)', type: 'output' });
+    await this.printLine({ text: 'Type \'help\' to get started. ', type: 'output' });
+    await this.printLine({ text: 'Type \'defaults\' to see built-in commands. ', type: 'output' });
     const commands = (await axios.get('/get/' + this.state.profile)).data.output;
     await this.setStateAsync({ commands: commands, editingCommands: commands });
   }
@@ -103,19 +105,27 @@ export default class App extends Component {
     const command = parse[0];
     const body = parse.length > 1 ? parse.slice(1).join(' ') : '';
     console.log(`<${command}> --> <${body}>`);
-    if (command === 'commands') {
-      await this.setStateAsync({ editingMode: true });
+    await this.printLine({ text: this.state.text, type: 'input' });
+    await this.setStateAsync({ lineTracker: this.state.lineTracker + 1 });
+    if (command === 'help') {
+      await this.printLine({ text: 'With Jelly, you can link web URLs to short commands.', type: 'output' });
+      await this.printLine({ text: 'Open the editor in the top-right, or with <Esc>.', type: 'output' });
+      await this.printLine({ text: 'You can run a command like <command> <body>.', type: 'output' });
+      await this.printLine({ text: 'That will open up a new page at the command URL + body.', type: 'output' });
+    } else if (command === 'defaults') {
+      await this.printLine({ text: '\'clear\': clear the terminal', type: 'output' });
+      await this.printLine({ text: '\'open <url>\': smart-opens <url> (Ex. \'open youtube\')', type: 'output' });
+      await this.printLine({ text: '\'exact <url>\': opens exact <url> (Ex. \'exact https://www.youtube.com\'', type: 'output' });
     } else if (command === 'clear') {
       await this.setStateAsync({ lines: [], inputLines: [], inputTracker: 0 });
+      await this.printLine({ text: 'clear' , type: 'input' });
     } else if (command === 'open') {
       window.open(`${body.startsWith('https://') || body.startsWith('http://') ? 'http://' : ''}${body}.com`, '_blank');
     } else if (command === 'exact') {
       window.open(body, '_blank');
-    } else if (this.state.commands.filter(item => Object.keys(item)[1] === command).length) {
+    } else if (command !== '' && this.state.commands.filter(item => Object.keys(item)[1] === command).length) {
       window.open(this.state.commands.filter(item => Object.keys(item)[1] === command)[0][command] + body, '_blank');
     }
-    await this.printLine({ text: this.state.text, type: 'input' });
-    await this.setStateAsync({ lineTracker: this.state.lineTracker + 1 });
   }
 
   render() {
