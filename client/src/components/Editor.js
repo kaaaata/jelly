@@ -10,6 +10,12 @@ export default class Editor extends Component {
           <div className='nav' onClick={() => this.props.writeCommand('new')}>
             New Command
           </div>
+          <div className='nav' onClick={() => this.props.exportCommands()}>
+            Export Commands
+          </div>
+          <div className='nav' onClick={() => this.props.importCommands()}>
+            Import Commands
+          </div>
         </div>
         {this.props.commands.map((command, index) => (
           <Command

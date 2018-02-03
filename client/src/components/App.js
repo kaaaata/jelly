@@ -12,7 +12,7 @@ export default class App extends Component {
       inputLines: [], // a log of all inputs only entered thus far
       inputTracker: 0, // when user hits arrow up/down, inputTracker tracks the previous input to display
       profile: 'cat', // current active alias profile, to-do
-      commands: [], // all active commands, {alias:url} (used to render)
+      commands: [], // all active commands, {id: #, alias:url} (used to render)
       editingCommands: [], // a snapshot of what commands were before editing (not used to render)
       editingMode: false, // currently editing commands?
     };
@@ -35,6 +35,8 @@ export default class App extends Component {
 
     this.setStateAsync = this.setStateAsync.bind(this);
     this.toggleEditor = this.toggleEditor.bind(this);
+    this.exportCommands = this.exportCommands.bind(this);
+    this.importCommands = this.importCommands.bind(this);
     this.writeCommand = this.writeCommand.bind(this);
     this.execute = this.execute.bind(this);
     this.printLine = this.printLine.bind(this);
@@ -65,6 +67,30 @@ export default class App extends Component {
     await axios.post('/post', { profile: this.state.profile, commands: this.state.commands });
   }
 
+  exportCommands() {
+    prompt("Copy exported commands to clipboard: Ctrl+C", JSON.stringify(this.state.editingCommands));
+  }
+
+  async importCommands() {
+    const imports = prompt("Paste JSON stringified commands to import:", '');
+    try {
+      const tentativeImports = JSON.parse(imports);
+      tentativeImports.forEach(obj => {
+        if (typeof obj !== 'object' || (typeof obj === 'object' && Array.isArray(obj)) ||
+          Object.keys(obj)[0] !== 'id' || typeof Object.keys(obj)[1] !== 'string' ||
+          typeof Object.values(obj)[0] !== 'number' || typeof Object.values(obj)[1] !== 'string') {
+          alert('Invalid import - please double-check for errors.');
+          return;
+        }
+      });
+      await this.setStateAsync({ editingCommands: [], commands: [] });
+      await this.setStateAsync({ editingCommands: tentativeImports, commands: tentativeImports });
+      await this.toggleEditor(); // db updated at the end of toggleEditor
+    } catch (e) {
+      alert('Invalid import - please double-check for errors.');
+    }
+  }
+
   async writeCommand(action, id, alias, url) { // new, update, or remove an existing command
     let newCommands = this.state.editingCommands.slice();
     if (action === 'new') { // new = add a new blank object
@@ -86,7 +112,7 @@ export default class App extends Component {
     }
     await this.setStateAsync({ editingCommands: []});
     await this.setStateAsync({ editingCommands: newCommands });
-    if (action === 'new' || action === 'delete') await this.setState({ commands: this.state.editingCommands });
+    if (action !== 'update') await this.setStateAsync({ commands: this.state.editingCommands });
   }
   
   async printLine(command = { text: '', type: 'input' }) {
@@ -122,7 +148,7 @@ export default class App extends Component {
       await this.setStateAsync({ lines: [], inputLines: [], inputTracker: 0 });
       await this.printLine({ text: 'clear' , type: 'input' });
     } else if (command === 'open') {
-      window.open(`${body.startsWith('https://') || body.startsWith('http://') ? 'http://' : ''}${body}.com`, '_blank');
+      window.open(`${body.startsWith('https://') || body.startsWith('http://') ? '' : 'http://'}${body}.com`, '_blank');
     } else if (command === 'exact') {
       window.open(body, '_blank');
     } else if (command === '~jelly') {
@@ -138,6 +164,8 @@ export default class App extends Component {
         <Editor
           commands={this.state.commands}
           toggleEditor={this.toggleEditor}
+          exportCommands={this.exportCommands}
+          importCommands={this.importCommands}
           writeCommand={this.writeCommand}
         />
         <div id="main">
