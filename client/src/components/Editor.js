@@ -6,7 +6,7 @@ export default class Editor extends Component {
     return (
       <div id='editor'>
         <div style={{ marginLeft: '100px', fontSize: '24px' }}>Editor</div>
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', width: '650px' }}>
           <div className='nav' onClick={() => this.props.writeCommand('new')}>
             New Command
           </div>
@@ -16,6 +16,9 @@ export default class Editor extends Component {
           <div className='nav' onClick={() => this.props.importCommands()}>
             Import Commands
           </div>
+        </div>
+        <div>
+          <span style={{ marginLeft: '50px' }}>Command</span><span style={{ marginLeft: '50px' }}>URL</span>
         </div>
         {this.props.commands.map((command, index) => (
           <Command

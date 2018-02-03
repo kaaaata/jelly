@@ -11,7 +11,7 @@ export default class App extends Component {
       lines: [], // a log of all input/outputs entered thus far
       inputLines: [], // a log of all inputs only entered thus far
       inputTracker: 0, // when user hits arrow up/down, inputTracker tracks the previous input to display
-      profile: 'cat', // current active alias profile, to-do
+      profile: 'guest', // current active alias profile, to-do
       commands: [], // all active commands, {id: #, alias:url} (used to render)
       editingCommands: [], // a snapshot of what commands were before editing (not used to render)
       editingMode: false, // currently editing commands?
@@ -35,6 +35,7 @@ export default class App extends Component {
 
     this.setStateAsync = this.setStateAsync.bind(this);
     this.toggleEditor = this.toggleEditor.bind(this);
+    this.login = this.login.bind(this);
     this.exportCommands = this.exportCommands.bind(this);
     this.importCommands = this.importCommands.bind(this);
     this.writeCommand = this.writeCommand.bind(this);
@@ -52,8 +53,10 @@ export default class App extends Component {
     await this.printLine({ text: 'Welcome to Jelly :)', type: 'output' });
     await this.printLine({ text: 'Type \'help\' to get started. ', type: 'output' });
     await this.printLine({ text: 'Type \'defaults\' to see built-in commands. ', type: 'output' });
-    const commands = (await axios.get('/get/' + this.state.profile)).data.output;
+    const commands = (await axios.get(`/get/${this.state.profile}`)).data.output;
     await this.setStateAsync({ commands: commands, editingCommands: commands });
+    const guestExists = (await axios.get(`/userprofileexists/guest`)).data.output;
+    if (!guestExists) await axios.post('/newprofile', { username: 'guest', password: 'guest' });
   }
 
   async toggleEditor() {
@@ -67,12 +70,41 @@ export default class App extends Component {
     await axios.post('/post', { profile: this.state.profile, commands: this.state.commands });
   }
 
+  async login() {
+    const target = prompt('Whos profile would you like to load?', '');
+    if (target === '') return; // this is necessary to avoid routes getting screwed. need to refactor away the url-encoded
+    const targetExists = (await axios.get(`/userprofileexists/${target}`)).data.output;
+    if (targetExists) { // IF PROFILE FOUND
+      const password = prompt(`<${target}> profile found. Enter password:`, '');
+      if (password === '') return;
+      if ((await axios.get(`/authenticate/${target}/${password}`)).data.output) { // PASSWORD IS GOOD
+        alert(`Hello, ${target}.`);
+        const commands = (await axios.get(`/get/${target}`)).data.output;
+        console.log('loading all these commands: ', commands);
+        await this.setStateAsync({ commands: [], editingCommands: [] });
+        await this.setStateAsync({ profile: target, commands: commands, editingCommands: commands });
+      } else { // PASSWORD IS BAD
+        alert('Invalid password.');
+      }
+    } else { // PROFILE NOT FOUND
+      if (confirm(`No profile <${target}> found. Would you like to create it?`)) {
+        const newPassword = prompt(`<${target}> profile password:`, '');
+        if (newPassword === '') return;
+        await axios.post('/newprofile', { username: target, password: newPassword });
+        await this.setStateAsync({ profile: target, commands: [], editingCommands: [] });
+      } else {
+        // do nothing
+      }
+    }
+
+  }
+
   exportCommands() {
-    prompt("Copy exported commands to clipboard: Ctrl+C", JSON.stringify(this.state.editingCommands));
+    prompt('To copy to clipboard: Ctrl+C', JSON.stringify(this.state.editingCommands));
   }
 
   async importCommands() {
-    const imports = prompt("Paste JSON stringified commands to import:", '');
+    const imports = prompt('Paste JSON stringified commands to import:', '');
     try {
       const tentativeImports = JSON.parse(imports);
       tentativeImports.forEach(obj => {
@@ -94,7 +126,11 @@ export default class App extends Component {
   async writeCommand(action, id, alias, url) { // new, update, or remove an existing command
     let newCommands = this.state.editingCommands.slice();
     if (action === 'new') { // new = add a new blank object
-      newCommands.push({ 'id': this.state.editingCommands[this.state.editingCommands.length - 1].id + 1, '' : '' });
+      if (!this.state.editingCommands.length) {
+        newCommands.push({ id: 1, '': '' });
+      } else {
+        newCommands.push({ id: this.state.editingCommands[this.state.editingCommands.length - 1].id + 1, '' : '' });
+      }
     } else if (action === 'update') { // update = find the object, add a new k-v pair, delete the old k-v pair
       newCommands.forEach(command => {
         if (command.id === id) {
@@ -152,7 +188,8 @@ export default class App extends Component {
     } else if (command === 'exact') {
       window.open(body, '_blank');
     } else if (command === '~jelly') {
-      if (body === 'omniscience') console.log((await axios.get('/getall/')).data.output);
+      if (body === 'commands') console.log((await axios.get('/getallfrom/commands')).data.output);
+      if (body === 'profiles') console.log((await axios.get('/getallfrom/profiles')).data.output);
     } else if (command !== '' && this.state.commands.filter(item => Object.keys(item)[1] === command).length) {
       window.open(this.state.commands.filter(item => Object.keys(item)[1] === command)[0][command] + body, '_blank');
     }
@@ -169,7 +206,7 @@ export default class App extends Component {
           writeCommand={this.writeCommand}
         />
         <div id="main">
-        <TopNav profile={this.state.profile} toggleEditor={this.toggleEditor} />
+        <TopNav profile={this.state.profile} toggleEditor={this.toggleEditor} login={this.login} />
           <div id='terminal'>          
             {this.state.lines.map((line, index) => (
               <Line key={index} text={line.text} type={line.type} />

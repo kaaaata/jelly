@@ -31,12 +31,14 @@ export default class CommandList extends Component {
         </div>
 
         <input // index counter (not really input but use input for ez formatting)
+          className='command-input'
           value={this.state.index}
           disabled={true}
           style={{ width: '25px' }}
         ></input>
 
         <input // alias box
+          className='command-input'
           value={this.state.alias}
           onChange={async(e) => {
             await this.setStateAsync({ alias: e.target.value });
@@ -46,6 +48,7 @@ export default class CommandList extends Component {
         ></input>
 
         <input // url box
+          className='command-input'
           value={this.state.url}
           onChange={async(e) => {
             await this.setStateAsync({ url: e.target.value });

@@ -25,7 +25,7 @@ app.use(require('express-session')({
 
 app.listen(process.env.PORT || 3000);
 
-// ROUTES THAT ARE ACTUALLY USED
+// COMMANDS ROUTES
 app.post('/post', async(req, res, next) => {
   // update user profile commands
   const output = await dbHelpers.updateCommands(req.body.profile, req.body.commands);
@@ -40,14 +40,39 @@ app.get('/get/:profile', async(req, res, next) => {
     message: `Successful GET -> /get`,
     output: output
   });
-})
+});
 
-// ~JELLY ROUTES
-app.get('/getall', async(req, res, next) => {
-  // see everything in 'commands' table
-  const output = await dbHelpers.getAllCommands();
+// LOGIN ROUTES
+app.get('/userprofileexists/:profile', async(req, res, next) => {
+  // does a user profile exist already?
+  const output = await dbHelpers.userProfileExists(req.params.profile);
   res.status(200).json({
-    message: `Successful GET -> /getall`,
+    message: `Successful GET -> /userprofileexists`,
     output: output
   });
-})
+});
+app.get('/authenticate/:profile/:password', async(req, res, next) => {
+  // profile/password combo valid?
+  const output = await dbHelpers.authenticate(req.params.profile, req.params.password);
+  res.status(200).json({
+    message: `Successful GET -> /authenticate`,
+    output: output
+  });
+});
+app.post('/newprofile', async(req, res, next) => {
+  // new profile creation
+  const output = await dbHelpers.newProfile(req.body.username, req.body.password);
+  res.status(201).json({
+    message: `Successful POST -> /newprofie`
+  });
+});
+
+// ~JELLY ROUTES
+app.get('/getallfrom/:table', async(req, res, next) => {
+  // see everything in 'commands' table
+  const output = await dbHelpers.getAllFrom(req.params.table);
+  res.status(200).json({
+    message: `Successful GET -> /getallfrom`,
+    output: output
+  });
+});

@@ -21,11 +21,29 @@ const getCommands = async(profile) => {
   });
   return ret;
 };
-const getAllCommands = async() => {
-  return await knex.select().from('commands');
+
+const userProfileExists = async(profile, data) => {
+  return (await knex.select().where('username', profile).from('profiles')).length;
 };
+const authenticate = async(profile, password) => {
+  console.log(`trying profile: ${profile}, password: ${password}`);
+  console.log((await knex.select('password').where('username', profile).from('profiles'))[0].password);
+  return (await knex.select('password').where('username', profile).from('profiles'))[0].password === password;
+}
+const newProfile = async(username, password) => {
+  await knex('profiles').insert({ username: username, password: password });
+}
+
+const getAllFrom = async(table) => {
+  return await knex.select().from(table);
+};
+
 module.exports = {
     updateCommands,
     getCommands,
-    getAllCommands,
+    userProfileExists,
+    authenticate,
+    newProfile,
+    getAllFrom,
 };
+
