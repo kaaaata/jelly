@@ -1,6 +1,8 @@
 let config = require('../knexfile');
 
-let env = 'development';
+let env = 'production';
+//let env = 'development';
+
 let knex = require('knex')(config[env]);
 
 module.exports = knex;
