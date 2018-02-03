@@ -21,6 +21,15 @@ export default class CommandList extends Component {
   render() {
     return (
       <div className='command' style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div // delete button
+            onClick={() => this.props.writeCommand('delete', this.state.id)}
+            style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px solid #888' }}
+          >
+            X
+          </div>
+        </div>
+
         <input // index counter (not really input but use input for ez formatting)
           value={this.state.index}
           disabled={true}
@@ -42,7 +51,7 @@ export default class CommandList extends Component {
             await this.setStateAsync({ url: e.target.value });
             await this.props.writeCommand('update', this.state.id, this.state.alias, this.state.url);
           }}
-          style={{ width: '500px' }}
+          style={{ width: '450px' }}
         ></input>
       </div>
     );

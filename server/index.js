@@ -39,12 +39,12 @@ app.get('/get/:profile', async(req, res, next) => {
   });
 })
 
-// JELLY ROUTES
-app.get('/see', async(req, res, next) => {
+// ~JELLY ROUTES
+app.get('/getall', async(req, res, next) => {
   // see everything in 'commands' table
-  const output = await dbHelpers.see();
+  const output = await dbHelpers.getAllCommands();
   res.status(200).json({
-    message: `Successful GET -> /see`,
+    message: `Successful GET -> /getall`,
     output: output
   });
 })

@@ -21,11 +21,11 @@ const getCommands = async(profile) => {
   });
   return ret;
 };
-const see = async() => {
+const getAllCommands = async() => {
   return await knex.select().from('commands');
 };
 module.exports = {
     updateCommands,
     getCommands,
-    see,
+    getAllCommands,
 };

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import CommandList from './CommandList';
+import TopNav from './TopNav';
+import Editor from './Editor';
 import Line from './Line';
 
 export default class App extends Component {
@@ -55,8 +56,8 @@ export default class App extends Component {
 
   async toggleEditor() {
     // mode = 'save' or 'dont save'
-    document.getElementById('terminal').style.marginLeft = this.state.editingMode ? 0 : '650px';
-    document.getElementById('terminal').style.opacity = this.state.editingMode ? 1 : 0.5;
+    document.getElementById('main').style.marginLeft = this.state.editingMode ? 0 : '650px';
+    document.getElementById('main').style.opacity = this.state.editingMode ? 1 : 0.5;
     document.getElementById('editor').style.width = this.state.editingMode ? 0 : '650px';
     await this.setStateAsync({ editingMode: !this.state.editingMode });
     if (this.state.editingMode) return; // only do below actions as 'save'
@@ -85,14 +86,15 @@ export default class App extends Component {
     }
     await this.setStateAsync({ editingCommands: []});
     await this.setStateAsync({ editingCommands: newCommands });
-    if (action === 'new') await this.setState({ commands: this.state.editingCommands });
+    if (action === 'new' || action === 'delete') await this.setState({ commands: this.state.editingCommands });
   }
   
   async printLine(command = { text: '', type: 'input' }) {
     // Input: command like { text: <rawCommand>, type: <input/output> }
     // Output: prints command to log and sets new blank line for input
     // When called with no arguments: prints blank line as input
-    await this.setStateAsync({ lines: this.state.lines.concat([command])});
+    await this.setStateAsync({ lines: this.state.lines.concat([command])
+      .slice(this.state.lines.length === 25 ? 1 : 0)});
     if (command.type === 'input') {
       await this.setStateAsync({ inputLines: this.state.inputLines.concat([command.text]) });
       await this.setStateAsync({ inputTracker: this.state.inputLines.length });
@@ -123,6 +125,8 @@ export default class App extends Component {
       window.open(`${body.startsWith('https://') || body.startsWith('http://') ? 'http://' : ''}${body}.com`, '_blank');
     } else if (command === 'exact') {
       window.open(body, '_blank');
+    } else if (command === '~jelly') {
+      if (body === 'omniscience') console.log((await axios.get('/getall/')).data.output);
     } else if (command !== '' && this.state.commands.filter(item => Object.keys(item)[1] === command).length) {
       window.open(this.state.commands.filter(item => Object.keys(item)[1] === command)[0][command] + body, '_blank');
     }
@@ -131,29 +135,23 @@ export default class App extends Component {
   render() {
     return (
       <div className='app'>
-        <div 
-          onClick={this.toggleEditor}
-          style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, border: 'solid black' }}
-        >
-          |||
-        </div>
-        <CommandList
+        <Editor
           commands={this.state.commands}
-          profile={this.state.profile}
           toggleEditor={this.toggleEditor}
-          writeCommand={this.writeCommand} />
-        <div id='terminal'>          
-          <div className='nav'>
-            Profile: {this.state.profile}
+          writeCommand={this.writeCommand}
+        />
+        <div id="main">
+        <TopNav profile={this.state.profile} toggleEditor={this.toggleEditor} />
+          <div id='terminal'>          
+            {this.state.lines.map((line, index) => (
+              <Line key={index} text={line.text} type={line.type} />
+            ))}
+            >&nbsp;<input
+              value={this.state.text}
+              onChange={e => this.setState({ text: e.target.value })}
+              style={{ width: '500px' }}
+            ></input>
           </div>
-          {this.state.lines.map((line, index) => (
-            <Line key={index} text={line.text} type={line.type} />
-          ))}
-          >&nbsp;<input
-            value={this.state.text}
-            onChange={e => this.setState({ text: e.target.value })}
-            style={{ width: '500px' }}
-          ></input>
         </div>
       </div>
     );

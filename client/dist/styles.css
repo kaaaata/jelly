@@ -9,32 +9,60 @@ input {
 }
 
 .app {
+  width: 1000px;
+  height: 1000px;
   font-family: 'Coming Soon', cursive;
   font-size: 16px;
   display: flex;
   flex-direction: column;
+  background-color: PowderBlue;
 }
-#terminal {
-  border: solid pink;
-  height: 100%;
+#jelly {
+  width: 64px;
+  height: 64px;
+  position: 'absolute';
+  top: '10px';
+  left: '10px';
+  z-index: 1;
+  border-radius: 50%;
+  border: 1px solid #888;
+  background-image: url('assets/jelly.png');
+  background-size: contain;
+
+  animation-name: spin;
+  animation-duration: 8000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+@keyframes spin {
+  from {transform:rotate(0deg);}
+  to {transform:rotate(360deg);}
+}
+
+#main {
+  height: 1000px;
   padding: 10px;
-  padding-top: 20px;
+  margin-left: 0;
   opacity: 1;
   transition: margin-left .75s;
 }
+#terminal {
+  overflow-y: scroll;
+  background-color: PaleTurquoise; 
+}
 #editor {
-  border: solid green;
+  border-right: solid green;
   width: 0;
   height: 100%;
-  padding-top: 20px;
+  padding-top: 10px;
   position: absolute;
   overflow-x: hidden;
   transition: 0.75s;
+  background-color: SkyBlue;
 }
 .nav {
   width: 200px;
   height: 20px;
-  border: solid red;
   padding: 5px;
   border: 1px solid #888;
 }

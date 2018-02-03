@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
 import Command from './Command';
 
-export default class CommandList extends Component {
+export default class Editor extends Component {
   render() {
     return (
       <div id='editor'>
-        <div>
-          Profile: {this.props.profile}
-        </div>
+        <div style={{ marginLeft: '100px', fontSize: '24px' }}>Editor</div>
         <div style={{ display: 'flex' }}>
           <div className='nav' onClick={() => this.props.writeCommand('new')}>
             New Command
