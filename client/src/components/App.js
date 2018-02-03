@@ -96,7 +96,6 @@ export default class App extends Component {
         // do nothing
       }
     }
-
   }
 
   exportCommands() {
@@ -174,7 +173,7 @@ export default class App extends Component {
     if (command === 'help') {
       await this.printLine({ text: 'With Jelly, you can link web URLs to short commands.', type: 'output' });
       await this.printLine({ text: 'Open the editor in the top-right, or with <Esc>.', type: 'output' });
-      await this.printLine({ text: 'You can run a command like <command> <body>.', type: 'output' });
+      await this.printLine({ text: 'Run commands in the terminal, with an optional body after a space.', type: 'output' });
       await this.printLine({ text: 'That will open up a new page at the command URL + body.', type: 'output' });
     } else if (command === 'defaults') {
       await this.printLine({ text: '\'clear\': clear the terminal', type: 'output' });
