@@ -11,18 +11,8 @@ export default class App extends Component {
       inputLines: [], // a log of all inputs only entered thus far
       inputTracker: 0, // when user hits arrow up/down, inputTracker tracks the previous input to display
       profile: 'cat', // current active alias profile, to-do
-      commands: [ // all active commands, {alias:url} (used to render)
-        {id: 1, yt:'https://www.youtube.com/results?search_query='},
-        {id: 2, rt:'https://www.rottentomatoes.com/search/?search='},
-        {id: 3, gg:'https://www.google.com/search?q='},
-        {id: 4, rd:'https://www.reddit.com/r/'},
-      ],
-      editingCommands: [ // a snapshot of what commands were before editing (not used to render)
-        {id: 1, yt:'https://www.youtube.com/results?search_query='},
-        {id: 2, rt:'https://www.rottentomatoes.com/search/?search='},
-        {id: 3, gg:'https://www.google.com/search?q='},
-        {id: 4, rd:'https://www.reddit.com/r/'},
-      ],
+      commands: [], // all active commands, {alias:url} (used to render)
+      editingCommands: [], // a snapshot of what commands were before editing (not used to render)
       editingMode: false, // currently editing commands?
     };
 
@@ -57,18 +47,19 @@ export default class App extends Component {
 
   async componentDidMount() {
     await this.printLine({ text: 'Welcome to Jelly! :)', type: 'output' });
+    const commands = (await axios.get('/get/' + this.state.profile)).data.output;
+    await this.setStateAsync({ commands: commands, editingCommands: commands });
   }
 
-  async toggleEditor(mode = 'save') {
+  async toggleEditor() {
     // mode = 'save' or 'dont save'
     document.getElementById('terminal').style.marginLeft = this.state.editingMode ? 0 : '650px';
     document.getElementById('terminal').style.opacity = this.state.editingMode ? 1 : 0.5;
     document.getElementById('editor').style.width = this.state.editingMode ? 0 : '650px';
-    if (this.state.editingMode) {
-      if (mode === 'save') await this.setStateAsync({ commands: this.state.editingCommands });
-      if (mode !== 'save') await this.setStateAsync({ editingCommands: this.state.commands });
-    }
     await this.setStateAsync({ editingMode: !this.state.editingMode });
+    if (this.state.editingMode) return; // only do below actions as 'save'
+    await this.setStateAsync({ commands: this.state.editingCommands });
+    await axios.post('/post', { profile: this.state.profile, commands: this.state.commands });
   }
 
   async writeCommand(action, id, alias, url) { // new, update, or remove an existing command
