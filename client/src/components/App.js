@@ -118,7 +118,7 @@ export default class App extends Component {
       await this.setStateAsync({ editingCommands: tentativeImports, commands: tentativeImports });
       await this.toggleEditor(); // db updated at the end of toggleEditor
     } catch (e) {
-      alert('Invalid import - please double-check for errors.');
+      if (imports !== '') alert('Invalid import - please double-check for errors.');
     }
   }
 
@@ -173,8 +173,8 @@ export default class App extends Component {
     if (command === 'help') {
       await this.printLine({ text: 'With Jelly, you can link web URLs to short commands.', type: 'output' });
       await this.printLine({ text: 'Open the editor in the top-right, or with <Esc>.', type: 'output' });
-      await this.printLine({ text: 'Run commands in the terminal, with an optional body after a space.', type: 'output' });
-      await this.printLine({ text: 'That will open up a new page at the command URL + body.', type: 'output' });
+      await this.printLine({ text: 'Link a shortcut like \'yt\' to \'https://www.youtube.com/results?search_query=\'', type: 'output' });
+      await this.printLine({ text: 'Run it like \'yt gangnam style\'', type: 'output' });
     } else if (command === 'defaults') {
       await this.printLine({ text: '\'clear\': clear the terminal', type: 'output' });
       await this.printLine({ text: '\'open <url>\': smart-opens <url> (Ex. \'open youtube\')', type: 'output' });
