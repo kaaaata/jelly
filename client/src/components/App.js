@@ -83,7 +83,7 @@ export default class App extends Component {
     if (target === '') return; // this is necessary to avoid routes getting screwed. need to refactor away the url-encoded
     const targetExists = (await axios.get(`/userprofileexists/${target}`)).data.output;
     if (targetExists) { // IF PROFILE FOUND
-      const password = prompt(`<${target}> profile found. Enter password:`, '');
+      const password = prompt(`<${target}> profile found. Enter password (guest password is 'guest'): `, '');
       if (password === '') return;
       if ((await axios.get(`/authenticate/${target}/${password}`)).data.output) { // PASSWORD IS GOOD
         alert(`Hello, ${target}.`);
@@ -107,11 +107,11 @@ export default class App extends Component {
   }
 
   exportCommands() {
-    prompt('To copy to clipboard: Ctrl+C', JSON.stringify(this.state.editingCommands));
+    prompt('Ctrl+C to copy to clipboard: ', JSON.stringify(this.state.editingCommands));
   }
 
   async importCommands() {
-    const imports = prompt('Paste JSON stringified commands to import:', '');
+    const imports = prompt('Paste JSON stringified commands to import: ', '');
     try {
       const tentativeImports = JSON.parse(imports);
       tentativeImports.forEach(obj => {
