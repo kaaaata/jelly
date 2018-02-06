@@ -11,7 +11,7 @@ export default class App extends Component {
       lines: [], // a log of all input/outputs entered thus far
       inputLines: [], // a log of all inputs only entered thus far
       inputTracker: 0, // when user hits arrow up/down, inputTracker tracks the previous input to display
-      profile: 'guest', // current active alias profile, to-do
+      profile: 'guest', // current active alias profile, default guest
       commands: [], // all active commands, {id: #, alias:url} (used to render)
       editingCommands: [], // a snapshot of what commands were before editing (not used to render)
       editingMode: false, // currently editing commands?
@@ -56,7 +56,15 @@ export default class App extends Component {
     const commands = (await axios.get(`/get/${this.state.profile}`)).data.output;
     await this.setStateAsync({ commands: commands, editingCommands: commands });
     const guestExists = (await axios.get(`/userprofileexists/guest`)).data.output;
-    if (!guestExists) await axios.post('/newprofile', { username: 'guest', password: 'guest' });
+    if (!guestExists) {
+      await axios.post('/newprofile', { username: 'guest', password: 'guest' });
+      const defaultCommands = [
+        { id: 1, 'yt': 'https://www.youtube.com/results?search_query=' },
+        { id: 2, 'gg': 'https://www.google.com/search?q=' },
+        { id: 3, 'gh': 'https://github.com/' }
+      ];
+      await axios.post('/post', { profile: 'guest', commands: defaultCommands });
+    }
   }
 
   async toggleEditor() {
@@ -205,10 +213,18 @@ export default class App extends Component {
           writeCommand={this.writeCommand}
         />
         <div id="main">
-        <TopNav profile={this.state.profile} toggleEditor={this.toggleEditor} login={this.login} />
+        <TopNav
+          profile={this.state.profile}
+          toggleEditor={this.toggleEditor}
+          login={this.login}
+        />
           <div id='terminal'>          
             {this.state.lines.map((line, index) => (
-              <Line key={index} text={line.text} type={line.type} />
+              <Line
+                key={index}
+                text={line.text}
+                type={line.type}
+              />
             ))}
             >&nbsp;<input
               value={this.state.text}
