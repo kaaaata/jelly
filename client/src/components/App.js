@@ -106,7 +106,7 @@ export default class App extends Component {
     } else { // PROFILE NOT FOUND
       if (confirm(`No profile <${target}> found. Would you like to create it?`)) {
         const newPassword = prompt(`<${target}> profile password:`, '');
-        if (newPassword === '' || !password) return;
+        if (newPassword === '' || !newpassword) return;
         await axios.post('/newprofile', { username: target, password: newPassword });
         await this.setStateAsync({ profile: target, commands: [], editingCommands: [] });
       } else {
