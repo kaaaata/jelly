@@ -19,12 +19,29 @@ export default class CommandList extends Component {
   }
 
   render() {
+    const styles = {
+      inputCounter: { width: '25px', },
+      inputAlias: { width: '100px', },
+      inputURL: { width: '450px', },
+      command: { display: 'flex', },
+      deleteContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      deleteButton: {
+        width: '24px',
+        height: '24px',
+        borderRadius: '50%',
+        border: '1px solid #888',
+      },
+    };
     return (
-      <div className='command' style={{ display: 'flex' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={styles.command}>
+        <div style={styles.deleteContainer}>
           <div // delete button
             onClick={() => this.props.writeCommand('delete', this.state.id)}
-            style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px solid #888' }}
+            style={styles.deleteButton}
           >
             X
           </div>
@@ -34,7 +51,7 @@ export default class CommandList extends Component {
           className='command-input'
           value={this.state.index}
           disabled={true}
-          style={{ width: '25px' }}
+          style={styles.inputCounter}
         ></input>
 
         <input // alias box
@@ -44,7 +61,7 @@ export default class CommandList extends Component {
             await this.setStateAsync({ alias: e.target.value });
             await this.props.writeCommand('update', this.state.id, this.state.alias, this.state.url);
           }}
-          style={{ width: '100px' }}
+          style={styles.inputAlias}
         ></input>
 
         <input // url box
@@ -54,9 +71,9 @@ export default class CommandList extends Component {
             await this.setStateAsync({ url: e.target.value });
             await this.props.writeCommand('update', this.state.id, this.state.alias, this.state.url);
           }}
-          style={{ width: '450px' }}
+          style={styles.inputURL}
         ></input>
       </div>
     );
   }
-}
+};

@@ -51,8 +51,8 @@ export default class App extends Component {
 
   async componentDidMount() {
     await this.printLine({ text: 'Welcome to Jelly :)', type: 'output' });
-    await this.printLine({ text: 'Type \'help\' to get started. ', type: 'output' });
     await this.printLine({ text: 'Type \'defaults\' to see built-in commands. ', type: 'output' });
+    await this.execute('help');
     const commands = (await axios.get(`/get/${this.state.profile}`)).data.output;
     await this.setStateAsync({ commands: commands, editingCommands: commands });
     const guestExists = (await axios.get(`/userprofileexists/guest`)).data.output;
@@ -69,26 +69,35 @@ export default class App extends Component {
 
   async toggleEditor() {
     // mode = 'save' or 'dont save'
-    document.getElementById('main').style.marginLeft = this.state.editingMode ? 0 : '650px';
-    document.getElementById('main').style.opacity = this.state.editingMode ? 1 : 0.5;
-    document.getElementById('editor').style.width = this.state.editingMode ? 0 : '650px';
     await this.setStateAsync({ editingMode: !this.state.editingMode });
+    document.getElementById('main').style.marginLeft = this.state.editingMode ? '650px' : 0;
+    document.getElementById('main').style.opacity = this.state.editingMode ? 0.5 : 1;
+    document.getElementById('editor').style.width = this.state.editingMode ? '650px' : 0;
+    document.getElementById('command-line').style.width = this.state.editingMode ? '275px' : '500px';
+    document.getElementById('terminal').style.width = this.state.editingMode ? '300px' : '950px';
+    document.getElementById('terminal').style.transition = this.state.editingMode ? '0.75s' : '1s';
+    document.getElementById('profile').style.opacity = this.state.editingMode ? 0 : 1;
     if (this.state.editingMode) return; // only do below actions as 'save'
     await this.setStateAsync({ commands: this.state.editingCommands });
     await axios.post('/post', { profile: this.state.profile, commands: this.state.commands });
   }
 
   async login() {
+    if (this.state.editingMode) return; // cannot log in in editor mode
     const target = prompt('Whos profile would you like to load?', '');
+    if (target.length > 10) { // this sucks but it's temporary. need to figure out appropriate css animation for profile
+      alert('Sorry, profile name must be 10 characters or less.');
+      return;
+    }
     if (target === '') return; // this is necessary to avoid routes getting screwed. need to refactor away the url-encoded
+
     const targetExists = (await axios.get(`/userprofileexists/${target}`)).data.output;
     if (targetExists) { // IF PROFILE FOUND
       const password = prompt(`<${target}> profile found. Enter password (guest password is 'guest'): `, '');
-      if (password === '') return;
+      if (password === '' || !password) return;
       if ((await axios.get(`/authenticate/${target}/${password}`)).data.output) { // PASSWORD IS GOOD
         alert(`Hello, ${target}.`);
         const commands = (await axios.get(`/get/${target}`)).data.output;
-        console.log('loading all these commands: ', commands);
         await this.setStateAsync({ commands: [], editingCommands: [] });
         await this.setStateAsync({ profile: target, commands: commands, editingCommands: commands });
       } else { // PASSWORD IS BAD
@@ -97,7 +106,7 @@ export default class App extends Component {
     } else { // PROFILE NOT FOUND
       if (confirm(`No profile <${target}> found. Would you like to create it?`)) {
         const newPassword = prompt(`<${target}> profile password:`, '');
-        if (newPassword === '') return;
+        if (newPassword === '' || !password) return;
         await axios.post('/newprofile', { username: target, password: newPassword });
         await this.setStateAsync({ profile: target, commands: [], editingCommands: [] });
       } else {
@@ -176,15 +185,16 @@ export default class App extends Component {
     const command = parse[0];
     const body = parse.length > 1 ? parse.slice(1).join(' ') : '';
     console.log(`<${command}> --> <${body}>`);
-    await this.printLine({ text: this.state.text, type: 'input' });
+    await this.printLine({ text: rawCommand, type: 'input' });
     await this.setStateAsync({ lineTracker: this.state.lineTracker + 1 });
     if (command === 'help') {
       await this.printLine({ text: 'With Jelly, you can link web URLs to short commands.', type: 'output' });
-      await this.printLine({ text: 'Open the editor in the top-right, or with <Esc>.', type: 'output' });
-      await this.printLine({ text: 'Link a shortcut like \'yt\' to \'https://www.youtube.com/results?search_query=\'', type: 'output' });
+      await this.printLine({ text: 'Open the editor with Esc or the Jelly icon.', type: 'output' });
+      await this.printLine({ text: 'Link a shortcut like yt to https://www.youtube.com/results?search_query=', type: 'output' });
       await this.printLine({ text: 'Run it like \'yt gangnam style\'', type: 'output' });
     } else if (command === 'defaults') {
       await this.printLine({ text: '\'clear\': clear the terminal', type: 'output' });
+      await this.printLine({ text: '\'help\': display help', type: 'output' });
       await this.printLine({ text: '\'open <url>\': smart-opens <url> (Ex. \'open youtube\')', type: 'output' });
       await this.printLine({ text: '\'exact <url>\': opens exact <url> (Ex. \'exact https://www.youtube.com\'', type: 'output' });
     } else if (command === 'clear') {
@@ -203,6 +213,16 @@ export default class App extends Component {
   }
 
   render() {
+    const styles = {
+      terminal: {
+        height: '100%',
+        width: '950px',
+        overflowY: 'scroll',
+        backgroundColor: 'PaleTurquoise', 
+        transition: '0.5s',
+        animationDelay: '2s',
+      },
+    };
     return (
       <div className='app'>
         <Editor
@@ -212,13 +232,13 @@ export default class App extends Component {
           importCommands={this.importCommands}
           writeCommand={this.writeCommand}
         />
-        <div id="main">
-        <TopNav
-          profile={this.state.profile}
-          toggleEditor={this.toggleEditor}
-          login={this.login}
-        />
-          <div id='terminal'>          
+        <div id='main'>
+          <TopNav
+            profile={this.state.profile}
+            toggleEditor={this.toggleEditor}
+            login={this.login}
+          />
+          <div id='terminal' style={styles.terminal}>          
             {this.state.lines.map((line, index) => (
               <Line
                 key={index}
@@ -228,12 +248,14 @@ export default class App extends Component {
             ))}
             >&nbsp;<input
               value={this.state.text}
-              onChange={e => this.setState({ text: e.target.value })}
+              id='command-line'
               style={{ width: '500px' }}
+              disabled={this.state.editingMode}
+              onChange={e => this.setState({ text: e.target.value })}
             ></input>
           </div>
         </div>
       </div>
     );
   }
-}
+};

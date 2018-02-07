@@ -7,7 +7,6 @@ input {
   margin-bottom: 5px;
   border: 1px solid #888;
 }
-
 .app {
   width: 1000px;
   height: 1000px;
@@ -16,13 +15,29 @@ input {
   display: flex;
   flex-direction: column;
   background-color: PowderBlue;
+  cursor: default;
+}
+#main {
+  height: 1000px;
+  padding: 10px;
+  margin-left: 0;
+  opacity: 1;
+  transition: all 0.75s;
+}
+#editor {
+  border-right: solid green;
+  width: 0;
+  height: 100%;
+  padding-top: 10px;
+  position: absolute;
+  overflow-x: hidden;
+  transition: 0.75s;
+  background-color: SkyBlue;
 }
 #jelly {
   width: 64px;
   height: 64px;
-  position: 'absolute';
-  top: '5px';
-  left: '5px';
+  position: relative;
   z-index: 1;
   border-radius: 50%;
   background-image: url('assets/jelly.jpg');
@@ -39,38 +54,12 @@ input {
   from {transform:rotate(0deg);}
   to {transform:rotate(360deg);}
 }
-
-#main {
-  height: 1000px;
-  padding: 10px;
-  margin-left: 0;
-  opacity: 1;
-  transition: margin-left .75s;
-}
-#terminal {
-  height: 100%;
-  overflow-y: scroll;
-  background-color: PaleTurquoise; 
-}
-#editor {
-  border-right: solid green;
-  width: 0;
-  height: 100%;
-  padding-top: 10px;
-  position: absolute;
-  overflow-x: hidden;
-  transition: 0.75s;
-  background-color: SkyBlue;
-}
 .command-input {
   background-color: rgb(122, 248, 206);
 }
-.nav {
-  width: 200px;
-  height: 20px;
-  padding: 5px;
-  background-color: rgb(161, 148, 250);
-  border: 1px solid #888;
+#command-line {
+  width: '500px';
+  transition: 0.75s;
 }
 #login:hover {
   font-size: 24px;
