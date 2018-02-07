@@ -14,7 +14,7 @@ export default class App extends Component {
       profile: 'guest', // current active alias profile, default guest
       commands: [], // all active commands, {id: #, alias:url} (used to render)
       editingCommands: [], // a snapshot of what commands were before editing (not used to render)
-      editingMode: false, // currently editing commands?
+      editingMode: false, // is the editor open? useful for disabling/enabling and animation
     };
 
     document.onkeydown = async(e) => {
